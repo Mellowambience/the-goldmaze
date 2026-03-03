@@ -11,14 +11,28 @@ this is a build-in-public project. forks are encouraged.
 
 ## what's remixable
 
-- `/src/mist/` — all prompt templates, completely open
-- `/supabase/schema.sql` — base schema, extend freely
-- the dungeon logic — swap stats, change genres, break the maze
+- `src/pico8/rooms.lua` — all room data, just strings. no Lua knowledge needed
+- `src/pico8/boss_rooms.lua` — 3 boss encounters
+- `src/mist/room-gen-template.md` — MIST prompts, completely open
+- the relics table in `main.p8` — swap names + passive effects
+- the PICO-8 color palette — change the vibe entirely with 3 constant swaps
 
-## what's not
+## what's not remixable
 
 - the MIST engine itself (sovereign, private)
 - the AetherRose brand assets
+
+## how to run
+
+```bash
+git clone https://github.com/Mellowambience/the-goldmaze.git
+# copy src/pico8/ into your PICO-8 carts folder
+# in PICO-8 console:
+load the-goldmaze/main
+run
+```
+
+See [`src/pico8/SETUP.md`](./src/pico8/SETUP.md) for full setup guide.
 
 ---
 
