@@ -18,22 +18,28 @@ __lua__
 
 -- ── constants ────────────────────────────
 local version = "0.1.0"
-local max_floors = 9    -- 3 bosses (every 3rd floor)
+local max_floors = 9
 local max_luck   = 10
-local save_slot  = 0    -- cartdata slot for relic persistence
+local save_slot  = 0
 
 -- ── game states ────────────────────────
 local state = {
-  title  = 0,
-  room   = 1,
-  fork   = 2,
-  result = 3,
-  boss   = 4,
-  death  = 5,
-  relic  = 6,
-  win    = 7,
+  title   = 0,
+  room    = 1,
+  fork    = 2,
+  result  = 3,
+  boss    = 4,
+  death   = 5,
+  relic   = 6,
+  win     = 7,
+  secret  = 8,   -- gold door easter egg state
 }
 local cur_state = state.title
+
+-- easter egg: hold z+x for 3s on title
+local ee_hold_t  = 0
+local ee_shown   = false
+local ee_timer   = 0
 
 -- ── run state ──────────────────────────
 local run = {}
@@ -49,15 +55,15 @@ function init_run()
     room_idx = 0,
     fork_sel = 1,
     outcome  = nil,
+    gold_door_unlocked = false,
   }
-  -- apply relic passives that trigger at run start
   if run.relic then
     if run.relic.id == 4 then run.mischief = run.mischief + 3 end
     if run.relic.id == 6 then run.gold = dget(1) end
   end
 end
 
--- ── relic persistence (cartdata) ─────────────
+-- ── relic persistence ──────────────────────
 function load_relic()
   cartdata("goldmaze_v1")
   local id = dget(0)
@@ -68,13 +74,12 @@ end
 function save_relic(relic_id)
   cartdata("goldmaze_v1")
   dset(0, relic_id)
-  -- save gold for gilded bones relic
   if relics[relic_id] and relics[relic_id].id == 6 then
     dset(1, run.gold)
   end
 end
 
--- ── pico-8 lifecycle ───────────────────────
+-- ── lifecycle ────────────────────────────
 
 function _init()
   init_run()
@@ -82,38 +87,73 @@ function _init()
 end
 
 function _update()
-  if cur_state == state.title  then update_title()
-  elseif cur_state == state.room   then update_room()
-  elseif cur_state == state.fork   then update_fork()
-  elseif cur_state == state.result then update_result()
-  elseif cur_state == state.boss   then update_boss()
-  elseif cur_state == state.death  then update_death()
-  elseif cur_state == state.relic  then update_relic()
+  if cur_state == state.title   then update_title()
+  elseif cur_state == state.room    then update_room()
+  elseif cur_state == state.fork    then update_fork()
+  elseif cur_state == state.result  then update_result()
+  elseif cur_state == state.boss    then update_boss()
+  elseif cur_state == state.death   then update_death()
+  elseif cur_state == state.relic   then update_relic()
+  elseif cur_state == state.secret  then update_secret()
   end
 end
 
 function _draw()
   cls(0)
-  if cur_state == state.title  then draw_title()
-  elseif cur_state == state.room   then draw_room()
-  elseif cur_state == state.fork   then draw_fork()
-  elseif cur_state == state.result then draw_result()
-  elseif cur_state == state.boss   then draw_boss()
-  elseif cur_state == state.death  then draw_death()
-  elseif cur_state == state.relic  then draw_relic()
+  if cur_state == state.title   then draw_title()
+  elseif cur_state == state.room    then draw_room()
+  elseif cur_state == state.fork    then draw_fork()
+  elseif cur_state == state.result  then draw_result()
+  elseif cur_state == state.boss    then draw_boss()
+  elseif cur_state == state.death   then draw_death()
+  elseif cur_state == state.relic   then draw_relic()
+  elseif cur_state == state.win     then draw_win()
+  elseif cur_state == state.secret  then draw_secret()
   end
 end
 
 -- ── title screen ─────────────────────────
 
 function update_title()
-  if btnp(4) or btnp(5) then
-    cur_state = state.room
-    pick_room()
+  -- easter egg: hold z+x for ~3 seconds
+  if btn(4) and btn(5) then
+    ee_hold_t = ee_hold_t + 1
+    if ee_hold_t >= 180 and not ee_shown then
+      ee_shown  = true
+      ee_timer  = 240
+    end
+  else
+    if ee_hold_t < 180 then ee_hold_t = 0 end
+  end
+
+  -- tick easter egg display
+  if ee_timer > 0 then
+    ee_timer = ee_timer - 1
+    return
+  end
+
+  -- normal start (only if not in easter egg)
+  if ee_hold_t < 180 then
+    if btnp(4) or btnp(5) then
+      cur_state = state.room
+      pick_room()
+    end
   end
 end
 
 function draw_title()
+  -- easter egg overlay
+  if ee_timer > 0 then
+    cls(0)
+    local a = min(1, ee_timer / 30)
+    print_centered("\u2727 \u27c1\u2205\u21ba\u21e2\u2261~\u2234", 38, 9)
+    print_centered("witchblades.", 54, 11)
+    print_centered("bi-polar freestyle.", 62, 8)
+    print_centered("pink.", 70, 12)
+    print_centered("the maze knows your name.", 90, 7)
+    return
+  end
+
   rect(0,0,127,127,9)
   rect(1,1,126,126,10)
   print_centered("the goldmaze", 30, 9)
@@ -129,25 +169,33 @@ end
 
 -- ── room logic ───────────────────────────
 
+function check_gold_door()
+  -- secret room: full luck on floor 9, not boss floor
+  if run.floor == max_floors
+      and run.floor % 3 ~= 0
+      and run.luck == max_luck
+      and not run.gold_door_unlocked then
+    run.gold_door_unlocked = true
+    cur_state = state.secret
+    return true
+  end
+  return false
+end
+
 function pick_room()
+  if check_gold_door() then return end
   if run.floor % 3 == 0 then
     cur_state = state.boss
     run.room_idx = flr(rnd(#boss_rooms)) + 1
   else
-    -- green door relic: every 3rd room is charm
     if run.relic and run.relic.id == 7 and run.floor % 3 == 2 then
-      run.room_idx = pick_charm_room()
+      run.room_idx = flr(rnd(#rooms)) + 1
     else
       run.room_idx = flr(rnd(#rooms)) + 1
     end
     cur_state = state.room
   end
   run.fork_sel = 1
-end
-
-function pick_charm_room()
-  -- find a charm-heavy room or fall back to random
-  return flr(rnd(#rooms)) + 1
 end
 
 function update_room()
@@ -161,10 +209,9 @@ function draw_room()
   if not r then return end
   draw_stat_bar()
   draw_floor_tag()
-  local y = 20
   local lines = wrap_text(r.desc, 22)
   for i, line in ipairs(lines) do
-    print(line, 4, y + (i-1)*7, 7)
+    print(line, 4, 20 + (i-1)*7, 7)
   end
   print_centered("z to continue", 110, 6)
 end
@@ -186,15 +233,14 @@ function draw_fork()
   draw_floor_tag()
   print("choose:", 4, 18, 7)
   local fork_colors = {10, 11, 12}
-  local fork_icons  = {"x", "?", "h"}
   for i = 1, 3 do
     local f = r.forks[i]
     local y = 28 + (i-1)*28
     local col = (run.fork_sel == i) and 9 or fork_colors[i]
     if run.fork_sel == i then print(">", 2, y+1, 9) end
-    print(fork_icons[i].." "..f.label, 8, y, col)
-    local desc_lines = wrap_text(f.desc, 19)
-    for j, line in ipairs(desc_lines) do
+    print(f.label, 8, y, col)
+    local dl = wrap_text(f.desc, 19)
+    for j, line in ipairs(dl) do
       print(line, 12, y+8+(j-1)*6, 6)
     end
   end
@@ -219,19 +265,13 @@ function apply_delta(delta)
   run.mischief = mid(0, 10,       run.mischief + (delta.mischief or 0))
   run.charm    = mid(0, 10,       run.charm    + (delta.charm    or 0))
   run.gold     = max(0,           run.gold     + (delta.gold     or 0))
-  -- luck thief ring
   if run.relic and run.relic.id == 8 and run.gold > 10 and run.luck < max_luck then
     run.luck = run.luck + 1
   end
-  -- clover shard
-  if run.relic and run.relic.id == 1 and run.luck < 1 then
-    run.luck = 1
-  end
-  -- trickster die
+  if run.relic and run.relic.id == 1 and run.luck < 1 then run.luck = 1 end
   if run.relic and run.relic.id == 3 and delta.luck and delta.luck ~= 0 then
     run.luck = mid(0, max_luck, run.luck + delta.luck)
   end
-  -- fool's gold coin
   if run.relic and run.relic.id == 2 and delta.charm then
     run.gold = run.gold + 1
   end
@@ -271,21 +311,11 @@ function draw_result()
     print(line, 4, 30 + (i-1)*7, 7)
   end
   local dy = 70
-  if o.delta.luck and o.delta.luck ~= 0 then
-    print_delta("luck", o.delta.luck, dy); dy=dy+8
-  end
-  if o.delta.mischief and o.delta.mischief ~= 0 then
-    print_delta("mischief", o.delta.mischief, dy); dy=dy+8
-  end
-  if o.delta.charm and o.delta.charm ~= 0 then
-    print_delta("charm", o.delta.charm, dy); dy=dy+8
-  end
-  if o.delta.gold and o.delta.gold ~= 0 then
-    print_delta("gold", o.delta.gold, dy)
-  end
-  if run.luck <= 0 then
-    print_centered("luck: 0", 104, 8)
-  end
+  if o.delta.luck and o.delta.luck ~= 0 then print_delta("luck", o.delta.luck, dy); dy=dy+8 end
+  if o.delta.mischief and o.delta.mischief ~= 0 then print_delta("mischief", o.delta.mischief, dy); dy=dy+8 end
+  if o.delta.charm and o.delta.charm ~= 0 then print_delta("charm", o.delta.charm, dy); dy=dy+8 end
+  if o.delta.gold and o.delta.gold ~= 0 then print_delta("gold", o.delta.gold, dy) end
+  if run.luck <= 0 then print_centered("luck: 0", 104, 8) end
   print_centered("z to continue", 118, 6)
 end
 
@@ -310,7 +340,7 @@ function draw_boss()
   local b = boss_rooms[run.room_idx]
   if not b then return end
   draw_stat_bar()
-  print_centered("boss · floor "..run.floor, 18, 8)
+  print_centered("boss \u00b7 floor "..run.floor, 18, 8)
   line(0, 26, 127, 26, 8)
   local lines = wrap_text(b.desc, 22)
   for i, line in ipairs(lines) do
@@ -319,7 +349,10 @@ function draw_boss()
   print_centered("z to face it", 110, 6)
 end
 
--- ── death + relic selection ──────────────────
+-- ── death ───────────────────────────────
+
+-- rare death flavour text pool (1/20 chance: witchblades ref)
+local death_rare = "the maze buries you with all your gold on."
 
 function update_death()
   if btnp(4) or btnp(5) then
@@ -331,22 +364,23 @@ end
 
 function draw_death()
   print_centered("luck: 0", 32, 8)
-  print_centered("the maze swallows you.", 46, 7)
+  -- 1/20 chance: witchblades easter egg death text
+  local death_text = "the maze swallows you."
+  if flr(rnd(20)) == 0 then
+    death_text = death_rare
+  end
+  print_centered(death_text, 46, 7)
   print_centered("floor "..run.floor.." | gold "..run.gold, 62, 10)
   line(0, 74, 127, 74, 1)
   print_centered("one relic carries forward.", 84, 9)
-  print_centered("choose wisely.", 94, 6)
   print_centered("z to continue", 114, 6)
 end
 
+-- ── relic selection ───────────────────────
+
 function pick_relics(n)
-  local pool, seen = {}, {}
-  for i = 1, #relics do
-    if not seen[i] then
-      add(pool, i)
-      seen[i] = true
-    end
-  end
+  local pool = {}
+  for i = 1, #relics do add(pool, i) end
   for i = #pool, 2, -1 do
     local j = flr(rnd(i)) + 1
     pool[i], pool[j] = pool[j], pool[i]
@@ -383,17 +417,44 @@ function draw_relic()
 end
 
 -- ── win ───────────────────────────────────
-function _draw()
-  if cur_state == state.win then
-    cls(0)
-    rect(0,0,127,127,9)
-    print_centered("you escaped.", 40, 10)
-    print_centered("the maze is still there.", 56, 7)
-    print_centered("floor "..run.floor.." | gold "..run.gold, 72, 9)
-    print_centered("z to go again", 100, 6)
-    return
+
+function draw_win()
+  rect(0,0,127,127,9)
+  print_centered("you escaped.", 38, 10)
+  print_centered("the maze is still there.", 54, 7)
+  print_centered("floor "..run.floor.." | gold "..run.gold, 70, 9)
+  print_centered("अमर", 90, 9)  -- amar: immortal
+  print_centered("z to go again", 110, 6)
+  if btnp(4) or btnp(5) then
+    init_run()
+    cur_state = state.title
   end
-  -- (rest of draw handled by state routing above)
+end
+
+-- ── secret: gold door easter egg ─────────────
+
+function update_secret()
+  if btnp(4) or btnp(5) then
+    -- resolve the secret fork (always charm)
+    run.outcome = {
+      text  = "you found the gold door. it was always here.",
+      delta = { luck=0, gold=run.gold, charm=1 },
+    }
+    -- reward: unlock ice on relic in pool
+    -- (relic id 9, added to pool if gold door found)
+    run.gold_door_found = true
+    cur_state = state.win
+  end
+end
+
+function draw_secret()
+  cls(10)  -- gold background
+  print_centered("✨ the gold door ✨", 32, 0)
+  print_centered("it was always here.", 46, 7)
+  print_centered("you just had enough", 58, 7)
+  print_centered("luck to see it.", 66, 7)
+  print_centered("अमर x ✧ ⟁∅↺⇢≡~∴", 88, 9)
+  print_centered("z to enter", 110, 1)
 end
 
 -- ── ui helpers ───────────────────────────
@@ -447,21 +508,25 @@ relics = {
   [6] = { id=6, name="gilded bones",     desc="gold never resets." },
   [7] = { id=7, name="the green door",   desc="every 3rd room: charm." },
   [8] = { id=8, name="luck thief ring",  desc="gold>10 gives +1 luck." },
+  -- hidden relic, unlocked via gold door easter egg
+  [9] = { id=9, name="ice on",           desc="luck can't reach 0 from combat. only from bosses." },
 }
 
--- ── data (included at build time) ─────────────
--- replace these with:
---   #include rooms.lua
---   #include boss_rooms.lua
--- when running in PICO-8
-
+-- ── data (replace with #include at runtime) ──
 rooms = {}
 boss_rooms = {}
 
 -- ── eof ───────────────────────────────────
--- if you found this, you're the kind of person
--- who reads source code. we like you here.
--- 🌹 aetherrose — ko-fi.com/1Aether1Rose1
+-- if you found this, you read source code.
+-- we like you here.
+--
+-- sonic dna:
+--   witchblades (lil peep x lil tracy)
+--   bi-polar freestyle (itsoktocry)
+--   pink (yameii + deko)
+--
+-- अमर x ✧ ⟁∅↺⇢≡~∴
+-- — mars / ko-fi.com/1Aether1Rose1
 
 __gfx__
 00000000000000000000000000000000

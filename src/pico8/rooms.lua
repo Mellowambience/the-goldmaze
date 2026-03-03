@@ -38,7 +38,7 @@ rooms = {
   [4] = {
     desc = "a door. seventeen locks, all identical. a key in your pocket you didn't put there.",
     forks = {
-      { type="combat",  label="break it down",        desc="the door has opinions.",                output_text="the door loses. you gain a passage." },
+      { type="combat",  label="break it down",        desc="the door has opinions.",                outcome_text="the door loses. you gain a passage." },
       { type="puzzle",  label="find the right lock",  desc="seventeen is one too many. or too few.", outcome_text="the sixteenth is the first. you note this." },
       { type="charm",   label="ask politely",         desc="nobody asks anymore.",                   outcome_text="the door opens. it thanks you." },
     }
@@ -95,6 +95,18 @@ rooms = {
       { type="combat",  label="break through",        desc="falling is commitment.",                   outcome_text="you fall briefly. return with someone's gold." },
       { type="puzzle",  label="map the one below",    desc="it runs in reverse. it knows more.",       outcome_text="it is 3 floors ahead. you see the boss." },
       { type="charm",   label="knock on the glass",   desc="the figure below knocks back.",            outcome_text="it hands something through a crack. +charm." },
+    }
+  },
+
+  -- ❧ HIDDEN ROOM ❧
+  -- only accessible via secret: luck == 10 on floor 9
+  -- see main.p8 check_gold_door()
+  [999] = {
+    desc = "a gold door. it was always here. you just had enough luck to see it.",
+    forks = {
+      { type="charm",   label="enter",   desc="the maze lets you.",   outcome_text="अमर." },
+      { type="charm",   label="turn back", desc="you could. you won't.", outcome_text="the door closes. the gold stays." },
+      { type="charm",   label="leave a mark", desc="for the next one.",  outcome_text="your name stays. the maze moves on." },
     }
   },
 
