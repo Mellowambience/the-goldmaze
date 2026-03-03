@@ -1,0 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --gold: #d4af37;
+  --void: #0a0a0f;
+  --emerald: #1a4731;
+  --mist: #8b9eb7;
+}
+
+body {
+  background: var(--void);
+  color: var(--gold);
+  font-family: 'Courier New', monospace;
+}
+
+.bg-void { background: var(--void); }
+.text-gold { color: var(--gold); }
+.border-gold { border-color: var(--gold); }
+.bg-gold { background: var(--gold); }
+.text-void { color: var(--void); }
