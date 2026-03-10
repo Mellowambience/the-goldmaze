@@ -256,4 +256,84 @@ rooms = {
   relic_hint = nil
 }
 
+[27] = {
+  id = "room_27",
+  type = "mischief_trap",
+  floor_set = "cursed_forest",
+  text = "you stumble upon a twisted glade, thorns snagging at your clothes, whispers seeming to come from all directions, the trees looming like sentinels. the air tastes of rust and forgotten promises",
+  fork_a = { label = "tangle of thorns", luck=0, mischief=2, charm=-1, gold=0 },
+  fork_b = { label = "whispering darkness beckons", luck=-1, mischief=1, charm=0, gold=0 },
+  relic_hint = nil
+},
+
+[28] = {
+  id = "room_28",
+  type = "charm_offer",
+  floor_set = "fae_court",
+  text = "you enter a grand hall of shimmering marble, courtiers bowing to you, a figure in a mask offering you a goblet of shimmering liquid. the scent of jasmine and mischief swirls around your thoughts",
+  fork_a = { label = "accept the goblet", luck=0, mischief=0, charm=2, gold=0 },
+  fork_b = { label = "refuse the offer", luck=0, mischief=0, charm=-1, gold=0 },
+  relic_hint = nil
+},
+
+[29] = {
+  id = "room_29",
+  type = "gold_gamble",
+  floor_set = "bone_market",
+  text = "you find yourself in a market of skeletal vendors, one offering you a gamble on a pile of gleaming bones. the clatter of rattling skulls echoes like a taunting drum",
+  fork_a = { label = "take the gamble", luck=1, mischief=0, charm=0, gold=2 },
+  fork_b = { label = "turn your back", luck=0, mischief=0, charm=0, gold=-1 },
+  relic_hint = nil
+},
+
+[30] = {
+  id = "room_30",
+  type = "relic_find",
+  floor_set = "mirrored_hall",
+  text = "you stumble upon a hall of shattered mirrors, one shard reflecting an image that seems almost right, you find a strange relic. the reflection shivers, hinting at hidden power",
+  fork_a = { label = "take the relic", luck=0, mischief=0, charm=1, gold=0 },
+  fork_b = { label = "leave the shard behind", luck=-1, mischief=0, charm=0, gold=0 },
+  relic_hint = "echo"
+},
+
+[31] = {
+  id = "room_31",
+  type = "luck_trial",
+  floor_set = "void_chapel",
+  text = "you enter a chapel of darkness, a void seeming to pull at you, a trial of luck presented before you. shadows swirl, daring you to step forward",
+  fork_a = { label = "take the trial", luck=2, mischief=0, charm=0, gold=0 },
+  fork_b = { label = "refuse the trial", luck=-1, mischief=0, charm=0, gold=0 },
+  relic_hint = nil
+},
+
+[32] = {
+  id = "room_32",
+  type = "safe_room",
+  floor_set = "gilded_vault",
+  text = "you find yourself in a vault of glittering gold, a room that seems to offer no danger, only comfort. the warm glow soothes your weary spirit",
+  fork_a = { label = "rest in golden hush", luck=0, mischief=0, charm=1, gold=0 },
+  fork_b = { label = "search the vault", luck=0, mischief=0, charm=0, gold=1 },
+  relic_hint = nil
+},
+
+[33] = {
+  id = "room_33",
+  type = "curse_lift",
+  floor_set = "salt_flats",
+  text = "you stumble upon a desolate landscape of salt, a curse seeming to weigh upon you, a chance to lift it presented. the crystals hum with a promise of release",
+  fork_a = { label = "lift the curse", luck=0, mischief=0, charm=1, gold=0 },
+  fork_b = { label = "leave the curse", luck=0, mischief=0, charm=-1, gold=0 },
+  relic_hint = nil
+},
+
+[34] = {
+  id = "room_34",
+  type = "boss_hint",
+  floor_set = "dream_tunnel",
+  text = "you find yourself in a tunnel of shifting dreams, a hint of a great challenge ahead, a boss waiting in the shadows. the air vibrates with a low, mocking laugh",
+  fork_a = { label = "prepare for battle", luck=1, mischief=0, charm=0, gold=0 },
+  fork_b = { label = "ignore the hint", luck=0, mischief=-1, charm=0, gold=0 },
+  relic_hint = nil
+}
+
 }
