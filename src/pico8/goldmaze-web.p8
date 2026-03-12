@@ -2,27 +2,27 @@ pico-8 cartridge // http://www.pico-8.com
 version 42
 __lua__
 
--- ♠ the goldmaze ♠
+-- * the goldmaze *
 -- by mars (@1Aether1Rose1 / Mellowambience)
 -- built in public: github.com/Mellowambience/the-goldmaze
 -- tip jar: ko-fi.com/1Aether1Rose1
 --
--- powered by MIST — a perceive→reason→act
+-- powered by MIST -- a perceive->reason->act
 -- ai system that authored every room in this
 -- dungeon. no two runs read the same.
 --
--- ❧ hidden for the curious:
+-- * hidden for the curious:
 --   "the maze was not built to be solved.
 --    it was built to be survived."
---                         — the goldmaze, 2026
+--                         -- the goldmaze, 2026
 
--- ── constants ────────────────────────────
+-- -- constants ----------------------------
 local version = "0.1.0"
 local max_floors = 9
 local max_luck   = 10
 local save_slot  = 0
 
--- ── game states ────────────────────────
+-- -- game states ------------------------
 local state = {
   title   = 0,
   room    = 1,
@@ -33,7 +33,7 @@ local state = {
   relic   = 6,
   win     = 7,
   secret  = 8,   -- gold door easter egg state
-  law     = 9,   -- ✦ law of attraction ending
+  law     = 9,   -- * law of attraction ending
 }
 local cur_state = state.title
 
@@ -42,7 +42,7 @@ local ee_hold_t  = 0
 local ee_shown   = false
 local ee_timer   = 0
 
--- ── run state ───────────────────────────
+-- -- run state ---------------------------
 local run = {}
 
 function init_run()
@@ -65,7 +65,7 @@ function init_run()
   end
 end
 
--- ── relic persistence ──────────────────────
+-- -- relic persistence ----------------------
 function load_relic()
   cartdata("goldmaze_v1")
   local id = dget(0)
@@ -81,7 +81,7 @@ function save_relic(relic_id)
   end
 end
 
--- ── lifecycle ────────────────────────────
+-- -- lifecycle ----------------------------
 
 function _init()
   init_run()
@@ -116,7 +116,7 @@ function _draw()
   end
 end
 
--- ── title screen ──────────────────────────
+-- -- title screen --------------------------
 
 function update_title()
   -- easter egg: hold z+x for ~3 seconds
@@ -171,7 +171,7 @@ function draw_title()
   end
 end
 
--- ── room logic ────────────────────────────
+-- -- room logic ----------------------------
 
 function check_gold_door()
   -- secret room: full luck on floor 9, not boss floor
@@ -250,7 +250,7 @@ function draw_fork()
   end
 end
 
--- ── fork resolution ──────────────────────────
+-- -- fork resolution --------------------------
 
 function resolve_fork()
   local r = rooms[run.room_idx]
@@ -269,7 +269,7 @@ function apply_delta(delta)
   run.mischief = mid(0, 10,       run.mischief + (delta.mischief or 0))
   run.charm    = mid(0, 10,       run.charm    + (delta.charm    or 0))
   local new_gold = run.gold + (delta.gold or 0)
-  -- ✦ law of attraction: willingly at 0 gold on floor >= 3
+  -- * law of attraction: willingly at 0 gold on floor >= 3
   if new_gold <= 0 and run.gold > 0 and run.floor >= 3 and run.luck > 0 then
     run.willful_zero = true
   end
@@ -299,7 +299,7 @@ end
 
 function update_result()
   if btnp(4) or btnp(5) then
-    -- ✦ law of attraction check: zero gold, alive, floor >= 3
+    -- * law of attraction check: zero gold, alive, floor >= 3
     if run.willful_zero and run.luck > 0 then
       cur_state = state.law
       return
@@ -337,7 +337,7 @@ function draw_result()
   print_centered("z to continue", 118, 6)
 end
 
--- ── boss ──────────────────────────────────────
+-- -- boss --------------------------------------
 
 function update_boss()
   if btnp(4) or btnp(5) then resolve_boss() end
@@ -367,7 +367,7 @@ function draw_boss()
   print_centered("z to face it", 110, 6)
 end
 
--- ── death ─────────────────────────────────────
+-- -- death -------------------------------------
 
 -- rare death flavour text pool (1/20 chance: witchblades ref)
 local death_rare = "the maze buries you with all your gold on."
@@ -394,7 +394,7 @@ function draw_death()
   print_centered("z to continue", 114, 6)
 end
 
--- ── relic selection ──────────────────────────
+-- -- relic selection --------------------------
 
 function pick_relics(n)
   local pool = {}
@@ -434,7 +434,7 @@ function draw_relic()
   end
 end
 
--- ── win ──────────────────────────────────────
+-- -- win --------------------------------------
 
 function draw_win()
   rect(0,0,127,127,9)
@@ -449,7 +449,7 @@ function draw_win()
   end
 end
 
--- ── secret: gold door easter egg ─────────────
+-- -- secret: gold door easter egg -------------
 
 function update_secret()
   if btnp(4) or btnp(5) then
@@ -475,7 +475,7 @@ function draw_secret()
   print_centered("z to enter", 110, 1)
 end
 
--- ── law of attraction ending ✦ ───────────────
+-- -- law of attraction ending * ---------------
 
 function update_law()
   if btnp(4) or btnp(5) then
@@ -487,7 +487,7 @@ end
 function draw_law()
   -- deep violet bg
   cls(2)
-  -- shimmer header — cycles colours
+  -- shimmer header -- cycles colours
   local c = 7 + flr(t() * 3) % 3
   print_centered("gold: 0", 20, 10)
   line(20, 29, 107, 29, 5)
@@ -501,7 +501,7 @@ function draw_law()
   print_centered("z to go again", 114, 5)
 end
 
--- ── ui helpers ──────────────────────────────
+-- -- ui helpers ------------------------------
 
 function draw_stat_bar()
   rectfill(0, 118, 127, 127, 1)
@@ -541,7 +541,7 @@ function wrap_text(str, max_chars)
   return lines
 end
 
--- ── data: relics ──────────────────────────────
+-- -- data: relics ------------------------------
 
 relics = {
   [1] = { id=1, name="clover shard",    desc="luck never drops below 1." },
@@ -556,8 +556,8 @@ relics = {
   [9] = { id=9, name="ice on",          desc="luck can't reach 0 from combat. only from bosses." },
 }
 
--- ── rooms (inlined from rooms.lua) ──
--- the goldmaze · rooms.lua
+-- -- rooms (inlined from rooms.lua) --
+-- the goldmaze . rooms.lua
 -- mist-authored room pool v1 (10 rooms, stub)
 -- full pool (80+ rooms) generated via mist offline
 -- template: src/mist/room-gen-template.md
@@ -657,13 +657,13 @@ rooms = {
     }
   },
 
-  -- ❧ HIDDEN ROOM ❧
+  -- * HIDDEN ROOM *
   -- only accessible via secret: luck == 10 on floor 9
   -- see main.p8 check_gold_door()
   [999] = {
     desc = "a gold door. it was always here. you just had enough luck to see it.",
     forks = {
-      { type="charm",   label="enter",   desc="the maze lets you.",   outcome_text="अमर." },
+      { type="charm",   label="enter",   desc="the maze lets you.",   outcome_text="amar." },
       { type="charm",   label="turn back", desc="you could. you won't.", outcome_text="the door closes. the gold stays." },
       { type="charm",   label="leave a mark", desc="for the next one.",  outcome_text="your name stays. the maze moves on." },
     }
@@ -1042,10 +1042,10 @@ rooms = {
 }
 
 }
--- ── boss rooms (inlined from boss_rooms.lua) ──
--- the goldmaze · boss_rooms.lua
+-- -- boss rooms (inlined from boss_rooms.lua) --
+-- the goldmaze . boss_rooms.lua
 -- mist-authored boss pool v1
--- boss 1: floor 3 · boss 2: floor 6 · boss 3: floor 9
+-- boss 1: floor 3 . boss 2: floor 6 . boss 3: floor 9
 
 boss_rooms = {
 
@@ -1076,8 +1076,8 @@ boss_rooms = {
 --   bi-polar freestyle (itsoktocryr)
 --   pink (yameii + deko)
 --
--- अमर x ✧ ♥
--- — mars / ko-fi.com/1Aether1Rose1
+-- amar x * <3
+-- -- mars / ko-fi.com/1Aether1Rose1
 
 __gfx__
 00000000000000000000000000000000
